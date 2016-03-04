@@ -1,32 +1,29 @@
-import dcp
-import contrast
-import saturat
-import Hue
 import os
 import cv2
 import random
+import hazerelevent
 import numpy as np
+import cPickle
 from scipy import misc
 from sklearn.ensemble import RandomForestRegressor
-import cPickle
 
 def Getfeature(patch):
+    hazeobj = hazerelevent.HazeRelevent()
     D = np.array([])
     C = np.array([])
     S = np.array([])
     scale = [1,4,7,10]
     for r in scale:
-        D = np.append(D, np.sort(np.reshape(dcp.DarkChannel(patch, r),(1, -1))) )
-        C = np.append(C, np.sort(np.reshape(contrast.GetContrast(patch, r),(1, -1))) )
-        S = np.append(S, np.sort(np.reshape(saturat.GetSaturation(patch, r),(1, -1))) )
-    H = np.sort(np.reshape(Hue.GetHue(patch),(1, -1)))
+        D = np.append(D, np.sort(np.reshape(hazeobj.DarkChannel(patch, r),(1, -1))) )
+        C = np.append(C, np.sort(np.reshape(hazeobj.GetContrast(patch, r),(1, -1))) )
+        S = np.append(S, np.sort(np.reshape(hazeobj.GetSaturation(patch, r),(1, -1))) )
+    H = np.sort(np.reshape(hazeobj.GetHue(patch),(1, -1)))
     feature = D
     feature = np.append(feature,C)
     feature = np.append(feature,S)
     feature = np.append(feature,H)
     return feature
 
-#base_path = '../build/'
 base_path = './dehaze/'
 patch_size = 16
 patch_nums = 10
@@ -65,13 +62,13 @@ for i in xrange(len(order)):
     rLabels.append(Labels[i])
     
 print 'DataSet Finished!'
-np.save('random_data5', rFeatures)
-np.save('random_label5', rLabels)
+np.save('random_data5.npy', rFeatures)
+np.save('random_label5.npy', rLabels)
 print 'DataSet Saved!'
 
 model = RandomForestRegressor(n_estimators=200, max_features=(1/3.0))
 model = model.fit(rFeatures, rLabels)
 print 'Model Finished!'
-with open('RandomModel.dat', 'wb') as f:
+with open('RandomModel.pkl', 'wb') as f:
     cPickle.dump(model, f)
 print 'Model Saved!'
