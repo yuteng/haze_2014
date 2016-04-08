@@ -8,22 +8,23 @@ from scipy import misc
 from sklearn.ensemble import RandomForestRegressor
 
 def Getfeature(patch):
-    hazeobj = hazerelevent.HazeRelevent()
     D = np.array([])
     C = np.array([])
     S = np.array([])
     scale = [1,4,7,10]
     for r in scale:
-        D = np.append(D, np.sort(np.reshape(hazeobj.DarkChannel(patch, r),(1, -1))) )
-        C = np.append(C, np.sort(np.reshape(hazeobj.GetContrast(patch, r),(1, -1))) )
-        S = np.append(S, np.sort(np.reshape(hazeobj.GetSaturation(patch, r),(1, -1))) )
-    H = np.sort(np.reshape(hazeobj.GetHue(patch),(1, -1)))
+        hazeobj = hazerelevent.HazeRelevent(patch, scale)
+        D = np.append(D, np.sort(np.reshape(hazeobj.DarkChannel(),(1, -1))) )
+        C = np.append(C, np.sort(np.reshape(hazeobj.GetContrast(),(1, -1))) )
+        S = np.append(S, np.sort(np.reshape(hazeobj.GetSaturation(),(1, -1))) )
+    H = np.sort(np.reshape(hazeobj.GetHue(),(1, -1)))
     feature = D
     feature = np.append(feature,C)
     feature = np.append(feature,S)
     feature = np.append(feature,H)
     return feature
 
+# base_path = '/home/lab-zeng.lingke/Downloads/datasets/dehaze/build/'
 base_path = './dehaze/'
 patch_size = 16
 patch_nums = 10
@@ -66,7 +67,7 @@ np.save('random_data5.npy', rFeatures)
 np.save('random_label5.npy', rLabels)
 print 'DataSet Saved!'
 
-model = RandomForestRegressor(n_estimators=200, max_features=(1/3.0))
+model = RandomForestRegressor(n_estimators=200, max_features=(1/3.0), n_jobs=24)
 model = model.fit(rFeatures, rLabels)
 print 'Model Finished!'
 with open('RandomModel.pkl', 'wb') as f:
